@@ -25,25 +25,18 @@ function contentTypeFor(filePath) {
 app.get("/", (req, res) => res.type("text/plain").send("ok\n"));
 
 app.get("/download", (req, res) => {
-  // Read file as bytes
-  fs.readFile(FILE_PATH, (err, data) => {
-    if (err) {
-      console.error("Failed to read file:", err);
-      return res.status(500).type("text/plain").send("Failed to read test file\n");
-    }
+  const fs = require("fs");
+  const path = require("path");
 
-    const filename = path.basename(FILE_PATH);
+  const FILE_PATH = path.join(__dirname, "testdata", "test.txt");
+  const data = fs.readFileSync(FILE_PATH);           // bytes
+  const b64 = data.toString("base64");               // base64 string
 
-    // Send as "binary download"
-    res.status(200);
-    res.set("Content-Type", "application/octet-stream"); // keep it generic for your repro
-    // If you want Salesforce/clients to get the filename (and extension), include this:
-    res.set("Content-Disposition", `attachment; filename="${filename}"`);
-    res.set("Content-Length", String(data.length));
-    res.set("Cache-Control", "no-store");
+  res.set("Content-Type", "text/plain");             // or application/json
+  res.set("Content-Disposition", 'attachment; filename="test.txt"'); // optional
+  res.set("Cache-Control", "no-store");
 
-    return res.send(data);
-  });
+  return res.status(200).send(b64);
 });
 
 const port = process.env.PORT || 3000;
