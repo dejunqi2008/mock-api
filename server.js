@@ -3,24 +3,15 @@ const fs = require("fs");
 const path = require("path");
 
 const app = express();
+app.use(express.json());
 
 // Absolute path to your test file
 const FILE_PATH = path.join(__dirname, "test-data", "test.txt");
 
-// Optional: map extension -> content-type (you can keep octet-stream if you want)
-function contentTypeFor(filePath) {
-  const ext = path.extname(filePath).toLowerCase();
-  switch (ext) {
-    case ".txt":
-      return "text/plain";
-    case ".png":
-      return "image/png";
-    case ".pdf":
-      return "application/pdf";
-    default:
-      return "application/octet-stream";
-  }
-}
+// Enums from OpenAPI components/schemas
+const STATUS_ENUM = new Set(["active", "inactive", "pending", "archived"]);
+const PRIORITY_ENUM = new Set([1, 2, 3, 4, 5]);
+
 
 app.get("/", (req, res) => res.type("text/plain").send("ok\n"));
 
@@ -33,6 +24,79 @@ app.get("/download", (req, res) => {
     contentBase64: data.toString("base64")
   });
 });
+
+
+
+
+function badRequest(res, message, details) {
+  return res.status(400).json({
+    error: "BadRequest",
+    message,
+    ...(details ? { details } : {}),
+  });
+}
+
+
+
+/**
+GET /test?status=active
+GET /test?status=archived&priority=1
+ */
+app.get("/test", (req, res) => {
+  const { status, priority } = req.query;
+  
+  console.log(status + ', ' + priority)
+
+  // status is required
+  if (status == null || status === "") {
+    return badRequest(res, "Missing required query parameter: status", {
+      allowedStatus: Array.from(STATUS_ENUM),
+    });
+  }
+
+  // status must be one of the enum values
+  if (!STATUS_ENUM.has(String(status))) {
+    return badRequest(res, "Invalid status value", {
+      received: status,
+      allowedStatus: Array.from(STATUS_ENUM),
+    });
+  }
+
+  // priority is optional, but if present must be integer enum [1..5]
+  let parsedPriority = undefined;
+  if (priority != null && priority !== "") {
+    // Express query params are strings; convert to integer
+    const n = Number(priority);
+    const isInt = Number.isInteger(n);
+
+    if (!isInt) {
+      return badRequest(res, "Invalid priority value (must be an integer)", {
+        received: priority,
+        allowedPriority: Array.from(PRIORITY_ENUM),
+      });
+    }
+    if (!PRIORITY_ENUM.has(n)) {
+      return badRequest(res, "Invalid priority value (out of allowed enum)", {
+        received: n,
+        allowedPriority: Array.from(PRIORITY_ENUM),
+      });
+    }
+    parsedPriority = n;
+  }
+
+  // Build TestResponse (required: id, status; optional: priority, message)
+  const responseBody = {
+    id: Date.now(), // int64-ish
+    status: String(status),
+    ...(parsedPriority !== undefined ? { priority: parsedPriority } : {}),
+    message: `OK: status=${status}${
+      parsedPriority !== undefined ? `, priority=${parsedPriority}` : ""
+    }`,
+  };
+
+  return res.status(200).json(responseBody);
+});
+
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => console.log(`Listening on http://localhost:${port}`));
