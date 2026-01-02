@@ -1,0 +1,84 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Enum Persistence Test Service",
+    "version": "1.0.0",
+    "description": "Test schema for enum data type persistence"
+  },
+  "servers": [
+    {
+      "url": "https://dqi-mock-api-d90bf522e85a.herokuapp.com/"
+    }
+  ],
+  "paths": {
+    "/test/": {
+      "get": {
+        "operationId": "getTestData",
+        "summary": "Test operation with enum parameters",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Status"
+            },
+            "description": "Status enum parameter"
+          },
+          {
+            "name": "priority",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/Priority"
+            },
+            "description": "Priority enum parameter"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TestResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Status": {
+        "type": "string",
+        "enum": ["active", "inactive", "pending", "archived"]
+      },
+      "Priority": {
+        "type": "integer",
+        "enum": [1, 2, 3, 4, 5]
+      },
+      "TestResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "status": {
+            "$ref": "#/components/schemas/Status"
+          },
+          "priority": {
+            "$ref": "#/components/schemas/Priority"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": ["id", "status"]
+      }
+    }
+  }
+}

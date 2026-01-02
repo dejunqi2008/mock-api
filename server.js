@@ -25,6 +25,14 @@ app.get("/download", (req, res) => {
   });
 });
 
+app.get("/enumSchema", (req, res) => {
+  const filePath = path.join(__dirname, "test-data", "enum-persistence-test-v3.json");
+  const data = fs.readFileSync(filePath, "utf-8");
+  const jsonData = JSON.parse(data);
+  res.set("Cache-Control", "public, max-age=300"); 
+  return res.status(200).json(jsonData);
+})
+
 
 
 
