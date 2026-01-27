@@ -11,9 +11,9 @@
     }
   ],
   "paths": {
-    "/test/": {
+    "/testEnum/": {
       "get": {
-        "operationId": "getTestData",
+        "operationId": "getTestEnum",
         "summary": "Test operation with enum parameters",
         "parameters": [
           {

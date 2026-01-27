@@ -92,6 +92,68 @@ app.get("/test", (req, res) => {
     parsedPriority = n;
   }
 
+  /**
+   * 
+   * PSOT /addData
+   * body: {
+   *     "status": "active",
+   *     "priority": 1
+   * }
+   */
+  app.post("/addData", (req, res) => {
+    const { status, priority } = req.body || {};
+    console.log("POST /addData body:", req.body);
+
+        // status is required
+    if (status == null || status === "") {
+      return badRequest(res, "Missing required body field: status", {
+        allowedStatus: Array.from(STATUS_ENUM),
+        example: { status: "active", priority: 1 },
+      });
+    }
+
+    // status must be one of the enum values
+    if (!STATUS_ENUM.has(String(status))) {
+      return badRequest(res, "Invalid status value", {
+        received: status,
+        allowedStatus: Array.from(STATUS_ENUM),
+      });
+    }
+
+    // priority is optional, but if present must be integer enum [1..5]
+    let parsedPriority = undefined;
+    if (priority != null && priority !== "") {
+      const n = Number(priority);
+      const isInt = Number.isInteger(n);
+
+      if (!isInt) {
+        return badRequest(res, "Invalid priority value (must be an integer)", {
+          received: priority,
+          allowedPriority: Array.from(PRIORITY_ENUM),
+        });
+      }
+      if (!PRIORITY_ENUM.has(n)) {
+        return badRequest(res, "Invalid priority value (out of allowed enum)", {
+          received: n,
+          allowedPriority: Array.from(PRIORITY_ENUM),
+        });
+      }
+      parsedPriority = n;
+    }
+
+    const responseBody = {
+      id: Date.now(),
+      status: String(status),
+      ...(parsedPriority !== undefined ? { priority: parsedPriority } : {}),
+      message: `OK: status=${status}${
+        parsedPriority !== undefined ? `, priority=${parsedPriority}` : ""
+      }`,
+    };
+
+    return res.status(200).json(responseBody);
+
+  })
+
   // Build TestResponse (required: id, status; optional: priority, message)
   const responseBody = {
     id: Date.now(), // int64-ish

@@ -1,0 +1,190 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "ListDataType Debug Test Service",
+    "version": "1.0.0",
+    "description": "Test schema for debugging ListDataType persistence and traversal"
+  },
+  "servers": [
+    {
+      "url": "https://dqi-mock-api-d90bf522e85a.herokuapp.com/"
+    }
+  ],
+  "paths": {
+    "/testList/": {
+      "get": {
+        "operationId": "getTestList",
+        "summary": "Test operation with ListDataType parameters and responses",
+        "parameters": [
+          {
+            "name": "stringList",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/StringList"
+            },
+            "description": "Top-level string list parameter"
+          },
+          {
+            "name": "integerList",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/IntegerList"
+            },
+            "description": "Top-level integer list parameter"
+          },
+          {
+            "name": "inlineList",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "description": "Inline (nested) list parameter"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success response with ListDataTypes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TestResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "postTest",
+        "summary": "Test operation with ListDataType in request body",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TestRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "$ref": "#/components/schemas/StringList"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "StringList": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "description": "Top-level list of strings"
+      },
+      "IntegerList": {
+        "type": "array",
+        "items": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "description": "Top-level list of integers"
+      },
+      "ObjectList": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/TestObject"
+        },
+        "description": "Top-level list of objects"
+      },
+      "NestedList": {
+        "type": "array",
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "description": "Top-level list of string lists (nested arrays)"
+      },
+      "TestObject": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "tags": {
+            "$ref": "#/components/schemas/StringList"
+          },
+          "scores": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "description": "Inline list property"
+          }
+        }
+      },
+      "TestRequest": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "$ref": "#/components/schemas/StringList"
+          },
+          "metadata": {
+            "$ref": "#/components/schemas/ObjectList"
+          },
+          "matrix": {
+            "$ref": "#/components/schemas/NestedList"
+          }
+        },
+        "required": ["items"]
+      },
+      "TestResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/ObjectList"
+          },
+          "counts": {
+            "$ref": "#/components/schemas/IntegerList"
+          },
+          "messages": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Inline list in response"
+          }
+        },
+        "required": ["status"]
+      }
+    }
+  }
+}
