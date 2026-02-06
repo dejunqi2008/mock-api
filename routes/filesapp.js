@@ -163,4 +163,30 @@ router.get("/enumSchema", (req, res) => {
   return res.status(200).json(jsonData);
 });
 
+// ----- Connection test endpoints -----
+
+// Jira connector: GET /rest/api/2/myself (OAuth test connection)
+// Must return 200 and Content-Type: application/json
+router.get("/rest/api/2/myself", (req, res) => {
+  res.status(200).json({
+    key: "mock-user",
+    name: "Mock User",
+    displayName: "Mock User",
+    emailAddress: "dqi@salesforce.com",
+    active: true,
+    accountId: "mock-account-id",
+  });
+});
+
+// Reference connector: GET /pets/offset (test connection)
+// Must return 200
+router.get("/pets/offset", (req, res) => {
+  res.status(200).json({
+    items: [],
+    total: 0,
+    offset: 0,
+    limit: 10,
+  });
+});
+
 module.exports = router;
