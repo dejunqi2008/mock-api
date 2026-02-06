@@ -1,1 +1,4 @@
 node_modules
+.vscode
+test-data/uploads
+.DS_Store
