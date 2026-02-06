@@ -22,6 +22,7 @@ const multerUpload = multer({
 });
 
 // POST /rest/api/2/issue/:issueIdOrKey/attachments (Jira connector addAttachment)
+// Sample: curl -X POST http://localhost:3000/rest/api/2/issue/TEST-123/attachments -F "file=@resume-dejun.pdf"
 router.post(
   "/rest/api/2/issue/:issueIdOrKey/attachments",
   multerUpload.single("file"),
@@ -78,6 +79,45 @@ router.get("/rest/api/2/attachment/content/:attachmentId", async (req, res) => {
     stream.pipe(res);
   } catch (err) {
     console.error("Get attachment error:", err);
+    res.status(500).json({ error: err?.message || String(err) });
+  }
+});
+
+// GET /rest/api/2/uploads - list all uploaded files (name, extension, size)
+router.get("/rest/api/2/uploads", async (req, res) => {
+  try {
+    const entries = await fs.promises.readdir(UPLOAD_DIR, { withFileTypes: true });
+    const files = await Promise.all(
+      entries
+        .filter((e) => e.isFile())
+        .map(async (e) => {
+          const filePath = path.join(UPLOAD_DIR, e.name);
+          const stat = await fs.promises.stat(filePath);
+          const parsed = path.parse(e.name);
+          return {
+            name: parsed.name,
+            extension: parsed.ext ? parsed.ext.slice(1) : "",
+            size: stat.size,
+          };
+        })
+    );
+    files.sort((a, b) => b.size - a.size);
+    res.status(200).json({ count: files.length, files });
+  } catch (err) {
+    console.error("List uploads error:", err);
+    res.status(500).json({ error: err?.message || String(err) });
+  }
+});
+
+// DELETE /rest/api/2/uploads - delete all files in the uploads folder
+router.delete("/rest/api/2/uploads", async (req, res) => {
+  try {
+    const entries = await fs.promises.readdir(UPLOAD_DIR, { withFileTypes: true });
+    const files = entries.filter((e) => e.isFile());
+    await Promise.all(files.map((e) => fs.promises.unlink(path.join(UPLOAD_DIR, e.name))));
+    res.status(200).json({ deleted: files.length });
+  } catch (err) {
+    console.error("Delete uploads error:", err);
     res.status(500).json({ error: err?.message || String(err) });
   }
 });
