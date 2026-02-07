@@ -33,6 +33,7 @@ router.post(
   "/rest/api/3/item/:resourceId/attachments",
   express.raw({ type: "*/*", limit: "200mb" }),
   async (req, res) => {
+    console.log('POST /rest/api/3/item/... received', req.method, req.url)
     const buf = req.body;
     if (!Buffer.isBuffer(buf)) {
       return res.status(400).json({ error: "Request body must be raw binary" });
