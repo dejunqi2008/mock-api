@@ -33,9 +33,20 @@ router.post(
   "/rest/api/3/item/:resourceId/attachments",
   express.raw({ type: "*/*", limit: "200mb" }),
   async (req, res) => {
-    console.log('POST /rest/api/3/item/... received', req.method, req.url)
     const buf = req.body;
+
+    console.log('[referencefilesapp] received request: POST /rest/api/3/item/.../attachments', {
+      url: req.url,
+      method: req.method,
+      contentType: req.headers['content-type'],
+      contentLength: req.headers['content-length'],
+      bodyIsBuffer: Buffer.isBuffer(req.body),
+      bodyType: typeof req.body,
+      bodyLength: req.body?.length ?? (typeof req.body === 'string' ? req.body.length : 'n/a'),
+    });
+
     if (!Buffer.isBuffer(buf)) {
+      console.log('[referencefilesapp] 400: body is not raw binary', { bodyType: typeof buf });
       return res.status(400).json({ error: "Request body must be raw binary" });
     }
 
@@ -43,8 +54,8 @@ router.post(
     const { resourceId } = req.params;
     const contentType = req.headers["content-type"] || "application/octet-stream";
 
-    const attachmentId = `10001`; // or e.g. `ref-${crypto.randomUUID().slice(0, 8)}`
-    const filename = `picture.jpg`; // reference mock uses picture.jpg; could derive from header if present
+    const attachmentId = `ref-${crypto.randomUUID().slice(0, 8)}`; // or e.g. `ref-${crypto.randomUUID().slice(0, 8)}`
+    const filename = `ramdom.bin`; // reference mock uses picture.jpg; could derive from header if present
     const baseUrl = `${req.protocol}://${req.get("host")}`;
 
     const filePath = path.join(UPLOAD_DIR, `${attachmentId}_${filename}`);
